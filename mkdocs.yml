@@ -1,0 +1,21 @@
+site_name: AppSec Simplified
+site_description: Application security explained in simple words, with labs, code and videos.
+site_url: https://rootranjan.github.io/appsec-simplified/
+repo_url: https://github.com/rootranjan/appsec-simplified
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+nav:
+  - Home: index.md
+  - Injection:
+      - SQL Injection: 01-injection/sqli.md
+  - Cheat Sheet Map: cheatsheet-index.md
