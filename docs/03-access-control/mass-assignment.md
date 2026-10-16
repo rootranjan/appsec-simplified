@@ -1,6 +1,6 @@
 ---
 video:
-lab: https://portswigger.net/web-security/api-testing (lab: "Exploiting a mass assignment vulnerability")
+lab: https://portswigger.net/web-security/api-testing/lab-exploiting-mass-assignment-vulnerability
 owasp_cheatsheet: https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html
 ---
 
@@ -97,7 +97,7 @@ userid=bobbytables&password=hashedpass&email=bobby@tables.com&isAdmin=true
 | `PUT /order/123` | `"status":"REFUNDED"` | Fraudulent refund |
 | `PUT /seller/me` | `"kycVerified":true` | Skip KYC |
 | `PUT /user/me` | `"userId":"<someone else's>"` | Account takeover / data overwrite |
-| `POST /org/keys` | `"orgId":"<other org>"` | Cross-tenant access (this is how **GitHub was hacked in 2012**) |
+| `POST /org/keys` | `"orgId":"<other org>"` | Cross-tenant access (the type of flaw behind the **2012 GitHub breach**) |
 
 ## Runnable demo (local only)
 
@@ -146,8 +146,7 @@ Use this on labs, CTFs and apps you are authorized to test.
 7. **Compare roles.** Fields visible only in an admin's response are good guesses.
 8. **Try different verbs.** Create may be protected while update isn't.
 
-**PortSwigger lab:** *API testing → "Exploiting a mass assignment vulnerability"*. Idea only: the
-`GET` response shows a hidden field the checkout `POST` also accepts.
+**PortSwigger lab:** [Exploiting a mass assignment vulnerability](https://portswigger.net/web-security/api-testing/lab-exploiting-mass-assignment-vulnerability) (Practitioner, API testing). See "What I learned" below.
 
 ## How to fix it
 
@@ -273,7 +272,24 @@ Red flags to grep for:
 - Test: add fields found in responses.
 
 ## What I learned from the lab
-<!-- Fill in after the PortSwigger lab: root cause, exploit idea, fix. Do not paste full solutions. -->
+
+Lab: [Exploiting a mass assignment vulnerability](https://portswigger.net/web-security/api-testing/lab-exploiting-mass-assignment-vulnerability) (Practitioner). Goal: buy an expensive item you can't afford.
+Notes below are concepts distilled from PortSwigger's [API testing page](https://portswigger.net/web-security/api-testing) and public write-ups (e.g. [siunam321](https://siunam321.github.io/ctf/portswigger-labs/api-testing/api-3/), [hndgoncer](https://medium.com/@hndgoncer/exploiting-a-mass-assignment-vulnerability-by-ports-d90b4e72ee2a)). I'm not republishing the solution; do the lab yourself first.
+
+- **Spot hidden fields by comparing GET vs write requests.** The same endpoint's `GET` response contained a field (a discount choice) that the normal `POST` never sent. A field the server *returns* but the client never *sends* is a prime candidate.
+- **3-step confirmation** (PortSwigger's method):
+    1. Send the field with a harmless, valid-looking value. No error means it may be accepted.
+    2. Send an invalid value (wrong type). If the response changes (error), the server parses and *uses* the field.
+    3. Send a privileged value and check the real effect (price, role, access), not just the status code.
+- **A type error is a useful oracle.** It proves the field reaches business logic even though the UI never shows it.
+- **Root cause:** the backend bound request JSON straight to an internal object with no allow-list of editable properties.
+- **Fix:** allow-list editable properties (DTO), keep price/discount/role decisions server-side, reject unknown fields.
+- **Takeaway for ASPM:** responses leak the attack surface. Returning internal fields helps attackers (API3 covers this) and signals a binding risk on the write side.
+
+### Real-world case: GitHub, 2012
+A user exploited mass assignment on GitHub's public-key update form and added their SSH key to the `rails` organization, then pushed a commit to the project as a demonstration. GitHub removed the key, suspended the user, shipped a fix about an hour later, ran a log/database review, and audited the codebase for similar flaws.
+Source: [GitHub blog: Public Key Security Vulnerability and Mitigation](https://github.blog/news-insights/company-news/public-key-security-vulnerability-and-mitigation/).
+Lesson: even a mature team missed one form, so allow-lists must be enforced on every binding point.
 
 ---
 Credit: based on the [OWASP Mass Assignment Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html) (CC BY-SA 4.0), rewritten with added examples. This note is shared under the same license.
