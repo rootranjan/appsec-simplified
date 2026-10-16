@@ -1,0 +1,1285 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Application security explained in simple words, with labs, code and videos.">
+      
+      
+      
+        <link rel="canonical" href="https://rootranjan.github.io/appsec-simplified/03-access-control/mass-assignment/">
+      
+      
+        <link rel="prev" href="../../01-injection/sqli/">
+      
+      
+        <link rel="next" href="../../cheatsheet-index/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Mass Assignment - AppSec Simplified</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mass-assignment" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AppSec Simplified" class="md-header__button md-logo" aria-label="AppSec Simplified" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AppSec Simplified
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Mass Assignment
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rootranjan/appsec-simplified" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AppSec Simplified" class="md-nav__button md-logo" aria-label="AppSec Simplified" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AppSec Simplified
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rootranjan/appsec-simplified" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Injection
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Injection
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-injection/sqli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Access Control
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Access Control
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mass Assignment
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mass Assignment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#in-one-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In one line
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-life-analogy-india" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-life analogy (India)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-it-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why it happens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagram-normal-vs-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagram: normal vs attack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-classic-example-from-owasp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The classic example (from OWASP)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-realistic-indian-e-commerce-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More realistic Indian e-commerce examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-demo-local-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable demo (local only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-attackers-find-it-testing-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How attackers find it (testing guide)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-fix-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to fix it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#allow-list-per-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow-list per framework
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for-code-review-aspm-finding-it-at-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For code review / ASPM (finding it at scale)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-bugs-dont-confuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related bugs (don't confuse)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-revision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick revision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-i-learned-from-the-lab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What I learned from the lab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What I learned from the lab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-case-github-2012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-world case: GitHub, 2012
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cheatsheet-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cheat Sheet Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#in-one-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In one line
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-life-analogy-india" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-life analogy (India)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-it-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why it happens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagram-normal-vs-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagram: normal vs attack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-classic-example-from-owasp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The classic example (from OWASP)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-realistic-indian-e-commerce-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More realistic Indian e-commerce examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runnable-demo-local-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runnable demo (local only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-attackers-find-it-testing-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How attackers find it (testing guide)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-fix-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to fix it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to fix it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#allow-list-per-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow-list per framework
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for-code-review-aspm-finding-it-at-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For code review / ASPM (finding it at scale)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-bugs-dont-confuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related bugs (don't confuse)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-revision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick revision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-i-learned-from-the-lab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What I learned from the lab
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What I learned from the lab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#real-world-case-github-2012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real-world case: GitHub, 2012
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mass-assignment">Mass Assignment</h1>
+<p><strong>Also called:</strong> Autobinding (Spring, ASP.NET), Object injection (PHP), Mass Assignment (Rails, Node).
+<strong>Maps to:</strong> <a href="https://cwe.mitre.org/data/definitions/915.html">CWE-915</a> and <strong>OWASP API3:2023 – Broken Object Property Level Authorization</strong>.</p>
+<h2 id="in-one-line">In one line</h2>
+<p>The app copies <em>everything</em> the user sends into its object, so the user can set fields they were never meant to touch (<code>isAdmin</code>, <code>price</code>, <code>balance</code>).</p>
+<h2 id="real-life-analogy-india">Real-life analogy (India)</h2>
+<p>You fill the <strong>IRCTC / Aadhaar update form</strong>. It shows 3 boxes: name, mobile, email.
+A clerk who types <em>whatever you tell him</em> into the system will also happily write
+"Quota: VIP, Fare: ₹0" if you say it aloud. The form never showed those boxes, but the
+clerk didn't check.</p>
+<p>The fix: the clerk only accepts the 3 things on the form and ignores the rest.</p>
+<h2 id="why-it-happens">Why it happens</h2>
+<p>Frameworks save developer time by auto-binding request data to objects:</p>
+<div class="highlight"><pre><span></span><code>name=Ravi&amp;email=r@x.in   →   user.name = "Ravi"; user.email = "r@x.in"
+</code></pre></div>
+<p>The framework does not know which fields are "safe". If the object also has <code>isAdmin</code>,
+and the attacker sends <code>isAdmin=true</code>, the framework binds that too.
+<strong>The attacker needs no source code</strong>: field names are guessable (<code>role</code>, <code>isAdmin</code>, <code>price</code>)
+or leaked in API responses.</p>
+<h2 id="diagram-normal-vs-attack">Diagram: normal vs attack</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant U as Attacker
+    participant A as App (auto-binding)
+    participant D as Database
+    Note over U,D: Normal signup
+    U-&gt;&gt;A: POST /register {userid, email, password}
+    A-&gt;&gt;D: save User(isAdmin=false default)
+    Note over U,D: Attack
+    U-&gt;&gt;A: POST /register {userid, email, password, "isAdmin": true}
+    A-&gt;&gt;A: bind ALL fields onto User object
+    A-&gt;&gt;D: save User(isAdmin=true)
+    D--&gt;&gt;U: 201 Created (attacker is now admin)</code></pre>
+<pre class="mermaid"><code>flowchart LR
+    R[Request fields] --&gt; B{Binder}
+    B --&gt;|Vulnerable: copy all| O1[User object&lt;br/&gt;isAdmin = true]
+    B --&gt;|Fixed: allow-list / DTO| F[Only userid,&lt;br/&gt;email, password]
+    F --&gt; O2[User object&lt;br/&gt;isAdmin = false]</code></pre>
+<h2 id="the-classic-example-from-owasp">The classic example (from OWASP)</h2>
+<p>Form shows only <code>userid</code>, <code>password</code>, <code>email</code>. Backing class also has <code>isAdmin</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">User</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="kd">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">userid</span><span class="p">;</span>
+<span class="w">   </span><span class="kd">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">password</span><span class="p">;</span>
+<span class="w">   </span><span class="kd">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">email</span><span class="p">;</span>
+<span class="w">   </span><span class="kd">private</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">isAdmin</span><span class="p">;</span><span class="w">   </span><span class="c1">// never shown on the form</span>
+<span class="p">}</span>
+
+<span class="nd">@RequestMapping</span><span class="p">(</span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"/addUser"</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RequestMethod</span><span class="p">.</span><span class="na">POST</span><span class="p">)</span>
+<span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">submit</span><span class="p">(</span><span class="n">User</span><span class="w"> </span><span class="n">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">      </span><span class="c1">// Spring auto-binds ALL request params</span>
+<span class="w">   </span><span class="n">userService</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="s">"successPage"</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Normal request:
+<div class="highlight"><pre><span></span><code>POST /addUser
+userid=bobbytables&amp;password=hashedpass&amp;email=bobby@tables.com
+</code></pre></div>
+Attack: one extra parameter.
+<div class="highlight"><pre><span></span><code>POST /addUser
+userid=bobbytables&amp;password=hashedpass&amp;email=bobby@tables.com&amp;isAdmin=true
+</code></pre></div></p>
+<h2 id="more-realistic-indian-e-commerce-examples">More realistic Indian e-commerce examples</h2>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Field attacker adds</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /signup</code></td>
+<td><code>"role":"admin"</code></td>
+<td>Admin account</td>
+</tr>
+<tr>
+<td><code>PUT /profile</code></td>
+<td><code>"walletBalance":100000</code></td>
+<td>Free money</td>
+</tr>
+<tr>
+<td><code>POST /cart/item</code></td>
+<td><code>"price":1</code>, <code>"discount":99</code></td>
+<td>Buy at ₹1</td>
+</tr>
+<tr>
+<td><code>PUT /order/123</code></td>
+<td><code>"status":"REFUNDED"</code></td>
+<td>Fraudulent refund</td>
+</tr>
+<tr>
+<td><code>PUT /seller/me</code></td>
+<td><code>"kycVerified":true</code></td>
+<td>Skip KYC</td>
+</tr>
+<tr>
+<td><code>PUT /user/me</code></td>
+<td><code>"userId":"&lt;someone else's&gt;"</code></td>
+<td>Account takeover / data overwrite</td>
+</tr>
+<tr>
+<td><code>POST /org/keys</code></td>
+<td><code>"orgId":"&lt;other org&gt;"</code></td>
+<td>Cross-tenant access (the type of flaw behind the <strong>2012 GitHub breach</strong>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="runnable-demo-local-only">Runnable demo (local only)</h2>
+<p>Source: <a href="https://github.com/rootranjan/appsec-simplified/blob/main/examples/mass-assignment/app.py"><code>examples/mass-assignment/app.py</code></a></p>
+<p><div class="highlight"><pre><span></span><code>python3<span class="w"> </span>examples/mass-assignment/app.py<span class="w"> </span>--selftest
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code>vuln: {'userid': 'bobby', 'email': 'b@x.in', 'is_admin': True,  'wallet_balance': 100000}
+safe: {'userid': 'bobby', 'email': 'b@x.in', 'is_admin': False, 'wallet_balance': 0}
+</code></pre></div></p>
+<p>The core difference:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Vulnerable: copy every key the client sent</span>
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<span class="c1"># Fixed: copy only allow-listed keys</span>
+<span class="n">ALLOWED</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"userid"</span><span class="p">,</span> <span class="s2">"email"</span><span class="p">,</span> <span class="s2">"password"</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ALLOWED</span> <span class="o">&amp;</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+</code></pre></div>
+<p>To try it with curl while the server runs (<code>python3 examples/mass-assignment/app.py</code>):
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:8000/vuln/register<span class="w"> </span>-d<span class="w"> </span><span class="s1">'{"userid":"a","is_admin":true}'</span>
+curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:8000/safe/register<span class="w"> </span>-d<span class="w"> </span><span class="s1">'{"userid":"a","is_admin":true}'</span>
+</code></pre></div></p>
+<h2 id="how-attackers-find-it-testing-guide">How attackers find it (testing guide)</h2>
+<p>Use this on labs, CTFs and apps you are authorized to test.</p>
+<ol>
+<li><strong>Read responses.</strong> <code>GET /api/user/me</code> returns <code>{"id":1,"email":"..","isAdmin":false,"credit":0}</code>?
+   Those extra fields are your candidate list.</li>
+<li><strong>Replay writes with extra fields.</strong> In Burp Repeater, take <code>PUT/PATCH/POST</code> requests and add
+   <code>"isAdmin":true</code>, <code>"role":"admin"</code>, <code>"credit":9999</code>, <code>"price":1</code>, <code>"verified":true</code>, <code>"id":&lt;other&gt;</code>.</li>
+<li><strong>Check the result.</strong> Re-fetch the object. A <code>200 OK</code> alone proves nothing; the field must actually change.</li>
+<li><strong>Try every format.</strong> JSON <code>{"a":1}</code>, form <code>a=1</code>, nested <code>user[role]=admin</code>, <code>user.role=admin</code>, arrays.</li>
+<li><strong>Try nested objects.</strong> <code>{"profile":{"isAdmin":true}}</code>.</li>
+<li><strong>Guess names from docs/JS/Swagger/GraphQL schema/mobile app.</strong> Param Miner (Burp extension) can brute-force hidden params.</li>
+<li><strong>Compare roles.</strong> Fields visible only in an admin's response are good guesses.</li>
+<li><strong>Try different verbs.</strong> Create may be protected while update isn't.</li>
+</ol>
+<p><strong>PortSwigger lab:</strong> <a href="https://portswigger.net/web-security/api-testing/lab-exploiting-mass-assignment-vulnerability">Exploiting a mass assignment vulnerability</a> (Practitioner, API testing). See "What I learned" below.</p>
+<h2 id="how-to-fix-it">How to fix it</h2>
+<p>Best to worst:</p>
+<ol>
+<li><strong>DTOs (separate input objects)</strong>: the request binds to a class that contains <em>only</em> editable fields.
+   <div class="highlight"><pre><span></span><code><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">UserRegistrationFormDTO</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">userid</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">password</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">email</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">// no isAdmin: it cannot be bound</span>
+<span class="p">}</span>
+</code></pre></div>
+   Then map DTO → entity yourself and set sensitive fields in server code.</li>
+<li><strong>Allow-list the fields</strong> your framework can bind (see table below).</li>
+<li><strong>Reject unknown fields</strong> (strict parsing), so attacks are loud, not silent.</li>
+<li><strong>Block-lists are weak.</strong> <code>disallowedFields("isAdmin")</code> misses the next sensitive field added by a developer. Use only as a stopgap.</li>
+<li><strong>Never trust client for sensitive values.</strong> Price, role, balance, ownership come from the server/DB.</li>
+<li><strong>Authorization still required.</strong> DTOs control <em>which fields</em>; you still must check <em>whose object</em> and <em>which operation</em> (<a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html">Authorization Cheat Sheet</a>).</li>
+<li><strong>Return DTOs too</strong> (response side), so you don't leak field names that help attackers.</li>
+</ol>
+<h3 id="allow-list-per-framework">Allow-list per framework</h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:8"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><input id="__tabbed_1_6" name="__tabbed_1" type="radio" /><input id="__tabbed_1_7" name="__tabbed_1" type="radio" /><input id="__tabbed_1_8" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Spring MVC</label><label for="__tabbed_1_2">Node + Mongoose</label><label for="__tabbed_1_3">Ruby on Rails</label><label for="__tabbed_1_4">Django / DRF</label><label for="__tabbed_1_5">Laravel</label><label for="__tabbed_1_6">ASP.NET Core</label><label for="__tabbed_1_7">Jackson (Java JSON)</label><label for="__tabbed_1_8">FastAPI / Pydantic</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><span class="nd">@InitBinder</span>
+<span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">initBinder</span><span class="p">(</span><span class="n">WebDataBinder</span><span class="w"> </span><span class="n">binder</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">binder</span><span class="p">.</span><span class="na">setAllowedFields</span><span class="p">(</span><span class="s">"userid"</span><span class="p">,</span><span class="w"> </span><span class="s">"password"</span><span class="p">,</span><span class="w"> </span><span class="s">"email"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+Prefer a DTO as the <code>@RequestBody</code>/<code>@ModelAttribute</code> type.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">'underscore'</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">SAFE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">'userid'</span><span class="p">,</span><span class="w"> </span><span class="s1">'password'</span><span class="p">,</span><span class="w"> </span><span class="s1">'email'</span><span class="p">];</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">User</span><span class="p">(</span><span class="nx">_</span><span class="p">.</span><span class="nx">pick</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">body</span><span class="p">,</span><span class="w"> </span><span class="nx">SAFE</span><span class="p">));</span><span class="w">   </span><span class="c1">// isAdmin dropped</span>
+</code></pre></div>
+With Express, never do <code>new User(req.body)</code> or <code>User.update(id, req.body)</code>.</p>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">user_params</span>
+<span class="w">  </span><span class="n">params</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span><span class="o">.</span><span class="n">permit</span><span class="p">(</span><span class="ss">:userid</span><span class="p">,</span><span class="w"> </span><span class="ss">:password</span><span class="p">,</span><span class="w"> </span><span class="ss">:email</span><span class="p">)</span><span class="w">  </span><span class="c1"># strong parameters</span>
+<span class="k">end</span>
+<span class="no">User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">user_params</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">UserSerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">ModelSerializer</span><span class="p">):</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"userid"</span><span class="p">,</span> <span class="s2">"email"</span><span class="p">]</span>          <span class="c1"># explicit list</span>
+        <span class="n">read_only_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+<span class="c1"># Avoid: fields = "__all__"  or  exclude = [...]</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="x">protected $fillable = ['userid', 'password', 'email'];   // allow-list</span>
+<span class="x">// Avoid: protected $guarded = [];   (everything mass-assignable)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="n">IActionResult</span><span class="w"> </span><span class="nf">Create</span><span class="p">([</span><span class="n">Bind</span><span class="p">(</span><span class="s">"UserId,Email,Password"</span><span class="p">)]</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="n">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
+<span class="c1">// Better: bind to a ViewModel/DTO without IsAdmin.</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nd">@JsonIgnoreProperties</span><span class="p">(</span><span class="n">ignoreUnknown</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">)</span><span class="w">   </span><span class="c1">// fail on extra fields</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">UserDto</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">userid</span><span class="p">;</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">email</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="c1">// Or mark the sensitive field: @JsonProperty(access = READ_ONLY)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">UserIn</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="s2">"forbid"</span><span class="p">)</span>   <span class="c1"># reject unknown fields</span>
+    <span class="n">userid</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">email</span><span class="p">:</span> <span class="n">EmailStr</span>
+    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="for-code-review-aspm-finding-it-at-scale">For code review / ASPM (finding it at scale)</h2>
+<p>Red flags to grep for:</p>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node</td>
+<td><code>new Model(req.body)</code>, <code>Model.update(..., req.body)</code>, <code>Object.assign(user, req.body)</code>, <code>{...req.body}</code></td>
+</tr>
+<tr>
+<td>Spring</td>
+<td>Controller param is a JPA <code>@Entity</code>; <code>@ModelAttribute</code> / <code>@RequestBody</code> on entity classes</td>
+</tr>
+<tr>
+<td>Rails</td>
+<td><code>params.permit!</code>, <code>update(params[:user])</code></td>
+</tr>
+<tr>
+<td>Django</td>
+<td><code>fields = "__all__"</code>, <code>exclude = [...]</code></td>
+</tr>
+<tr>
+<td>Laravel</td>
+<td><code>$guarded = []</code>, <code>Model::create($request-&gt;all())</code></td>
+</tr>
+<tr>
+<td>.NET</td>
+<td>Entity used directly as action parameter</td>
+</tr>
+<tr>
+<td>Python</td>
+<td><code>setattr(obj, k, v)</code> loops over request data</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Triage tips</strong>
+- Severity depends on <em>which field</em> is writable: role/ownership/price = high; display name = not an issue.
+- Check whether entities with sensitive fields are ever used as request types.
+- Write a Semgrep rule per pattern above; verify with a PoC on a test environment before raising.</p>
+<p><strong>Tests to add:</strong> for each write endpoint, a test that sends extra sensitive fields and asserts they don't change.</p>
+<h2 id="related-bugs-dont-confuse">Related bugs (don't confuse)</h2>
+<table>
+<thead>
+<tr>
+<th>Bug</th>
+<th>Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IDOR</td>
+<td>Attacker changes <em>which object</em> (<code>/orders/123</code>). Mass assignment changes <em>which fields</em>.</td>
+</tr>
+<tr>
+<td>Prototype pollution</td>
+<td>JS-specific; attacker sets <code>__proto__</code> key. Related idea: merging untrusted keys into objects.</td>
+</tr>
+<tr>
+<td>Excessive data exposure</td>
+<td>Server <em>returns</em> too many fields. Same root cause on the response side. API3:2023 covers both.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-revision">Quick revision</h2>
+<ul>
+<li>Cause: auto-binding + sensitive fields on the same object.</li>
+<li>Exploit: add extra field to request.</li>
+<li>Fix: <strong>DTO + allow-list</strong>, never trust client for role/price/owner.</li>
+<li>Still do authorization.</li>
+<li>Test: add fields found in responses.</li>
+</ul>
+<h2 id="what-i-learned-from-the-lab">What I learned from the lab</h2>
+<p>Lab: <a href="https://portswigger.net/web-security/api-testing/lab-exploiting-mass-assignment-vulnerability">Exploiting a mass assignment vulnerability</a> (Practitioner). Goal: buy an expensive item you can't afford.
+Notes below are concepts distilled from PortSwigger's <a href="https://portswigger.net/web-security/api-testing">API testing page</a> and public write-ups (e.g. <a href="https://siunam321.github.io/ctf/portswigger-labs/api-testing/api-3/">siunam321</a>, <a href="https://medium.com/@hndgoncer/exploiting-a-mass-assignment-vulnerability-by-ports-d90b4e72ee2a">hndgoncer</a>). I'm not republishing the solution; do the lab yourself first.</p>
+<ul>
+<li><strong>Spot hidden fields by comparing GET vs write requests.</strong> The same endpoint's <code>GET</code> response contained a field (a discount choice) that the normal <code>POST</code> never sent. A field the server <em>returns</em> but the client never <em>sends</em> is a prime candidate.</li>
+<li><strong>3-step confirmation</strong> (PortSwigger's method):<ol>
+<li>Send the field with a harmless, valid-looking value. No error means it may be accepted.</li>
+<li>Send an invalid value (wrong type). If the response changes (error), the server parses and <em>uses</em> the field.</li>
+<li>Send a privileged value and check the real effect (price, role, access), not just the status code.</li>
+</ol>
+</li>
+<li><strong>A type error is a useful oracle.</strong> It proves the field reaches business logic even though the UI never shows it.</li>
+<li><strong>Root cause:</strong> the backend bound request JSON straight to an internal object with no allow-list of editable properties.</li>
+<li><strong>Fix:</strong> allow-list editable properties (DTO), keep price/discount/role decisions server-side, reject unknown fields.</li>
+<li><strong>Takeaway for ASPM:</strong> responses leak the attack surface. Returning internal fields helps attackers (API3 covers this) and signals a binding risk on the write side.</li>
+</ul>
+<h3 id="real-world-case-github-2012">Real-world case: GitHub, 2012</h3>
+<p>A user exploited mass assignment on GitHub's public-key update form and added their SSH key to the <code>rails</code> organization, then pushed a commit to the project as a demonstration. GitHub removed the key, suspended the user, shipped a fix about an hour later, ran a log/database review, and audited the codebase for similar flaws.
+Source: <a href="https://github.blog/news-insights/company-news/public-key-security-vulnerability-and-mitigation/">GitHub blog: Public Key Security Vulnerability and Mitigation</a>.
+Lesson: even a mature team missed one form, so allow-lists must be enforced on every binding point.</p>
+<hr />
+<p>Credit: based on the <a href="https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html">OWASP Mass Assignment Cheat Sheet</a> (CC BY-SA 4.0), rewritten with added examples. This note is shared under the same license.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
