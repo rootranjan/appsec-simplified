@@ -9,3 +9,4 @@
 | Access control / IDOR | [IDOR Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html) | [Access control](https://portswigger.net/web-security/access-control) | todo |
 | CSRF | [CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) | [CSRF](https://portswigger.net/web-security/csrf) | todo |
 | Mass Assignment | [Mass Assignment](https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html) | [API testing](https://portswigger.net/web-security/api-testing) | [mass-assignment](03-access-control/mass-assignment.md) |
+| Threat Modeling | [Threat Modeling](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html) | n/a (design-time) | [basics](08-threat-modeling/01-basics.md) |
